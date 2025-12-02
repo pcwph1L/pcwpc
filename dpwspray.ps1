@@ -170,7 +170,7 @@ function Invoke-DomainPasswordSpray{
 
     if ($UserList -eq "")
     {
-        $UserListArray = Get-DomainUserList -Domain $Domain -RemoveDisabled -RemovePotentialLockouts -Filter $Filter
+        $UserListArray = Get-DomainUserList -Domain $Domain -RemoveDisabled -Filter $Filter
     }
     else
     {
@@ -295,8 +295,6 @@ function Get-DomainUserList
 
     Attempts to remove disabled accounts from the userlist. (Credit to Sally Vandeven (@sallyvdv))
 
-    .PARAMETER RemovePotentialLockouts
-
     Removes accounts within 1 attempt of locking out.
 
     .PARAMETER Filter
@@ -313,7 +311,7 @@ function Get-DomainUserList
 
     .EXAMPLE
 
-    C:\PS> Get-DomainUserList -Domain domainname -RemoveDisabled -RemovePotentialLockouts | Out-File -Encoding ascii userlist.txt
+    C:\PS> Get-DomainUserList -Domain domainname -RemoveDisabled | Out-File -Encoding ascii userlist.txt
 
     Description
     -----------
@@ -328,10 +326,6 @@ function Get-DomainUserList
      [Parameter(Position = 1, Mandatory = $false)]
      [switch]
      $RemoveDisabled,
-
-     [Parameter(Position = 2, Mandatory = $false)]
-     [switch]
-     $RemovePotentialLockouts,
 
      [Parameter(Position = 3, Mandatory = $false)]
      [string]
@@ -450,41 +444,7 @@ function Get-DomainUserList
     Write-Host -ForegroundColor "yellow" ("[*] There are " + $AllUserObjects.count + " total users found.")
     $UserListArray = [System.Collections.Generic.List[String]]::new()
 
-    if ($RemovePotentialLockouts)
-    {
-        Write-Host -ForegroundColor "yellow" "[*] Removing users within 1 attempt of locking out from list."
-        foreach ($user in $AllUserObjects)
-        {
-            # Getting bad password counts and lst bad password time for each user
-            $badcount = $user.Properties.badpwdcount
-            $samaccountname = $user.Properties.samaccountname
-            try
-            {
-                $badpasswordtime = $user.Properties.badpasswordtime[0]
-            }
-            catch
-            {
-                continue
-            }
-            $currenttime = Get-Date
-            $lastbadpwd = [DateTime]::FromFileTime($badpasswordtime)
-            $timedifference = ($currenttime - $lastbadpwd).TotalMinutes
-
-            if ($badcount)
-            {
-                [int]$userbadcount = [convert]::ToInt32($badcount, 10)
-                $attemptsuntillockout = $SmallestLockoutThreshold - $userbadcount
-                # if there is more than 1 attempt left before a user locks out
-                # or if the time since the last failed login is greater than the domain
-                # observation window add user to spray list
-                if (($timedifference -gt $observation_window) -or ($attemptsuntillockout -gt 1))
-                                {
-                    $UserListArray.Add($samaccountname)
-                }
-            }
-        }
-    }
-    else
+ 
     {
         foreach ($user in $AllUserObjects)
         {
