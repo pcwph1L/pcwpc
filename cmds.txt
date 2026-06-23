@@ -3,8 +3,12 @@
   -replace "(?m)^([a-z_]+)\s*:\s*", "`n`$1 : " |
   Set-Content .\tokens_singleline.txt
 
+$headers = @{
+    Authorization = "Bearer $token"
+}
+
 Invoke-RestMethod `
-    -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices" `
+    -Uri "https://graph.microsoft.com/v1.0/me" `
     -Headers $headers `
     -Method GET
 
