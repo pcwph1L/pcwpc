@@ -48,5 +48,12 @@ snaff
 https://github.com/pcwph1L/pcwpc/raw/refs/heads/main/snaff.exe
 
 
+# Upload one file
+scp C:\Users\You\Documents\report.pdf ubuntu@203.0.113.50:/home/ubuntu/
 
+# Upload a folder
+scp -r C:\Users\You\Desktop\project ubuntu@203.0.113.50:/home/ubuntu/
+
+# Use a custom SSH port (e.g. 2222)
+scp -P 2222 file.txt ubuntu@203.0.113.50:/home/ubuntu/
 
